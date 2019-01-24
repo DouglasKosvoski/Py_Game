@@ -1,3 +1,6 @@
+# The ball will bouncing for an indefinitely period of time
+# You can change the ball direction by pressing the spacebar on your keyboard
+
 import pygame, random
 pygame.init()
 
