@@ -1,3 +1,5 @@
+# draw a certain pattern as result of the given angle value  
+
 import pygame, math
 pygame.init()
 
