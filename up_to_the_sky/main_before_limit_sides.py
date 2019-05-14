@@ -31,12 +31,10 @@ enemy_down = True
 enemy_left = False
 enemy_right = False
 
-enemy_xspeed = -1
-enemy_yspeed = 1
-
 enemy_image = pygame.image.load("enemy.png")
 enemy_width, enemy_height = 100, 90
-enemy_pos = [200,0]#[random.randint(1, canvas_width-enemy_width), 0]
+enemy_pos = [399,0]#[random.randint(1, canvas_width-enemy_width), 0]
+enemy_speed = 1
 
 limit_inferior = canvas_height/2 - (enemy_height/2)
 right_limit = canvas_width - (enemy_width/2) - 150
@@ -89,32 +87,40 @@ def player():
 
     canvas.blit(player_image, (player_pos[0], player_pos[1]))
 
-def enemy(enemy_down, enemy_left, enemy_right,enemy_xspeed, enemy_yspeed):
+def enemy(enemy_down, enemy_left, enemy_right):
     canvas.blit(enemy_image, (enemy_pos[0], enemy_pos[1]))
 
     # if enemy is not in the bottom of the screen
     if enemy_pos[1] < limit_inferior:
-        enemy_pos[1] = enemy_pos[1] + enemy_yspeed
+        enemy_down = True
     else:
-        enemy_pos[1] = limit_inferior
+        enemy_down = False
 
     # if enemy is in the left corner
-    if enemy_pos[0] < 0:
-        enemy_xspeed *= -1
+    if 0 < enemy_pos[0] and enemy_pos[0] <= left_limit:
+        enemy_left = False
+        enemy_right = True
 
    # if enemy is in the right corner
-    elif canvas_width-enemy_width < enemy_pos[0]:
-        enemy_xspeed *= -1
+    elif right_limit < enemy_pos[0] and enemy_pos[0] < canvas_width - enemy_width:
+        enemy_right = False
+        enemy_left = True
 
-    # print('LIMIT LEFT =', left_limit)
-    # print('LIMIT RIGHT =', right_limit)
-    # print('RIGHT =',enemy_right)
-    # print('LEFT  =',enemy_left)
-    # print('DOWN  =',enemy_down)
-    print(enemy_pos, enemy_xspeed)
+    print('LIMIT LEFT =', left_limit)
+    print('LIMIT RIGHT =', right_limit)
+    print('RIGHT =',enemy_right)
+    print('LEFT  =',enemy_left)
+    print('DOWN  =',enemy_down)
+    print()
 
+    if enemy_down == True:
+        enemy_pos[1] = enemy_pos[1] + enemy_speed
 
-    enemy_pos[0] += enemy_xspeed
+    if enemy_left == True:# and enemy_right == False:
+        enemy_pos[0] = enemy_pos[0] - enemy_speed
+
+    elif enemy_right == True:# and enemy_left == False:
+        enemy_pos[0] = enemy_pos[0] + enemy_speed
 
 
 
@@ -122,8 +128,8 @@ while True:
 
     background()
     event_handler()
-    enemy(enemy_down, enemy_left, enemy_right, enemy_xspeed, enemy_yspeed)
     player()
+    enemy(enemy_down, enemy_left, enemy_right)
 
     frames.tick(fps)
     pygame.display.update()
