@@ -27,7 +27,7 @@ while True:
     # draw background filling the whole window
     pygame.draw.rect(canvas,light_purple,[0,0, canvas_width,canvas_height])
     # get random speed between Min and Max values
-    rain_speed = 12
+    rain_speed = 10
     # density of raindrops
     for i in range(1): # increase range to add raindrops
         # random x raindrop start position
@@ -58,7 +58,7 @@ while True:
        if event.type == pygame.QUIT:
           pygame.quit()
           sys.exit()
-          
+
        # if key pressed is ESC
        elif event.type == pygame.KEYDOWN:
           if event.key == pygame.K_ESCAPE:
