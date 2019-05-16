@@ -1,10 +1,7 @@
 
-import pygame, random
+import pygame, random, time
 pygame.init()
 pygame.key.set_repeat(1,1)
-
-# imports from local files
-from colors import Red, Blue, White, Green
 
 # define display and refresh rate
 canvas_width, canvas_height = 500, 800
@@ -21,26 +18,40 @@ sky_image_height = 800
 background_pos = [[0, 0], [0, -sky_image_height]]
 
 # player settings
+player_image = pygame.image.load("player.png")
 gravity = 2
 player_speed = 5
 player_width, player_height = 140, 130
 player_pos = [canvas_width/2 - (player_width/2), canvas_height/2 - (player_height/2)]
 
 # enemy settings
-enemy_down = True
-enemy_left = False
-enemy_right = False
-
-enemy_xspeed = -1
-enemy_yspeed = 1
-
+hp = 5
 enemy_image = pygame.image.load("enemy.png")
 enemy_width, enemy_height = 100, 90
-enemy_pos = [200,0]#[random.randint(1, canvas_width-enemy_width), 0]
+enemy_pos = [random.randint(1, canvas_width-enemy_width), 1]
+limit_inferior, limit_superior = canvas_height/2, 0
+left_limit, right_limit = 0, canvas_width - enemy_width
+enemy_xspeed, enemy_yspeed = 5, 2
 
-limit_inferior = canvas_height/2 - (enemy_height/2)
-right_limit = canvas_width - (enemy_width/2) - 150
-left_limit = 150
+# bullet settings
+bullet_image = pygame.image.load("white_shot.png")
+max_bullets = 15
+bullets = []
+bullet_width = 20
+bullet_height = 50
+bullet_speed = 7
+
+
+textObjectsColor = (255,0,0)
+def text_objects(text, font):                                                           # define function to display a message if crash equals True
+    textSurface = font.render(text, True, textObjectsColor)                             # text parameters
+    return textSurface, textSurface.get_rect()                                          # return the message in a rectangle
+
+def message_display(text):                                                              # fuction create text
+    largeText = pygame.font.Font("freesansbold.ttf", 45)                                # define text font and size
+    TextSurf, TextRect = text_objects(text, largeText)
+    TextRect = (canvas_width-150, 0)                            # show the message in the center of the display
+    canvas.blit(TextSurf, TextRect)
 
 def background():
     canvas.blit(sky_image, (background_pos[0][0], background_pos[0][1]))
@@ -59,10 +70,23 @@ def event_handler():
         if event.type == pygame.QUIT:
             pygame.quit()
             quit()
-        elif event.type == pygame.KEYDOWN:
+
+        elif event.type == pygame.KEYUP:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 quit()
+
+            if event.key == pygame.K_SPACE:
+                # append the bullet in the middle of the player model
+                bullets.append([player_pos[0]+(player_width/2)-(bullet_width/2), player_pos[1]])
+
+                if len(bullets) > max_bullets:
+                    bullets.pop(0)
+
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_w:
+                if 0 <= player_pos[1] and player_pos[1] <= canvas_height - player_height:
+                    player_pos[1] = player_pos[1] - player_speed
 
             elif event.key == pygame.K_a:
                 if player_pos[0] <= 0:
@@ -76,54 +100,65 @@ def event_handler():
                 else:
                     player_pos[0] = player_pos[0] + player_speed
 
-            elif event.key == pygame.K_w:
-                player_pos[1] = player_pos[1] - player_speed
-
 def player():
-    player_image = pygame.image.load("player.png")
+    canvas.blit(player_image, (player_pos[0], player_pos[1]))
 
     if player_pos[1] < canvas_height - player_height:
         player_pos[1] = player_pos[1] + gravity
     else:
         player_pos[1] = canvas_height - player_height
 
-    canvas.blit(player_image, (player_pos[0], player_pos[1]))
+def enemy():
+    global enemy_xspeed
+    global enemy_yspeed
 
-def enemy(enemy_down, enemy_left, enemy_right,enemy_xspeed, enemy_yspeed):
     canvas.blit(enemy_image, (enemy_pos[0], enemy_pos[1]))
-
-    # if enemy is not in the bottom of the screen
-    if enemy_pos[1] < limit_inferior:
-        enemy_pos[1] = enemy_pos[1] + enemy_yspeed
-    else:
-        enemy_pos[1] = limit_inferior
-
-    # if enemy is in the left corner
-    if enemy_pos[0] < 0:
+    # moves vertically
+    if limit_superior > enemy_pos[1] or enemy_pos[1] > limit_inferior:
+        enemy_yspeed *= -1
+    # moves horizontally
+    if enemy_pos[0] <= left_limit or enemy_pos[0] > right_limit:
         enemy_xspeed *= -1
 
-   # if enemy is in the right corner
-    elif canvas_width-enemy_width < enemy_pos[0]:
-        enemy_xspeed *= -1
+    enemy_pos[1] = enemy_pos[1] - enemy_yspeed
+    enemy_pos[0] = enemy_pos[0] - enemy_xspeed
 
-    # print('LIMIT LEFT =', left_limit)
-    # print('LIMIT RIGHT =', right_limit)
-    # print('RIGHT =',enemy_right)
-    # print('LEFT  =',enemy_left)
-    # print('DOWN  =',enemy_down)
-    print(enemy_pos, enemy_xspeed)
+def shot():
+    global hp
+    global enemy_pos
+    global bullets
 
+    for i in range(len(bullets)):
 
-    enemy_pos[0] += enemy_xspeed
+        bullet_x = bullets[i][0]
+        bullet_y = bullets[i][1]
+        bullets[i][1] = bullets[i][1] - bullet_speed
+        canvas.blit(bullet_image, [bullet_x, bullet_y])
+
+        if enemy_pos[0] < bullets[i][0] and bullets[i][0] + bullet_width < enemy_pos[0] + enemy_width:
+            if enemy_pos[1] < bullets[i][1] and bullets[i][1] + bullet_width < enemy_pos[1] + enemy_width:
+                bullets[i] = [800, 800]#bullets.pop(i)
+                hp -= 1
+
+                if hp <= 0:
+                    # TOCAR ANIMACAO DE EXPLOSAO AQUI //////////
+                    enemy_pos = [random.randint(1, canvas_width-enemy_width), 1]
+                    bullets = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],
+                               [0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
+                    hp = 5
+
 
 
 
 while True:
 
-    background()
     event_handler()
-    enemy(enemy_down, enemy_left, enemy_right, enemy_xspeed, enemy_yspeed)
+    background()
     player()
+    enemy()
+    shot()
+    message_display('hp = {0}'.format(hp))
+
 
     frames.tick(fps)
     pygame.display.update()
