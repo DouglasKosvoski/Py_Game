@@ -1,21 +1,17 @@
-# The ball will bouncing for an indefinitely period of time
-# You can change the ball direction by pressing the spacebar on your keyboard
+import pygame
 
-import pygame, random
-pygame.init()
-
-canvas_width, canvas_height = 640, 480
+canvas_width, canvas_height = 800, 600
 canvas = pygame.display.set_mode((canvas_width, canvas_height))
 fps = pygame.time.Clock()
 
-gray  = (120,120,120)
-red   = (255,50,100)
 blue  = (80, 120, 200)
 white = (255,255,255)
 
-speed = 5
+speed, gravity = 0, 0
 radius = 40
-y = int(canvas_height-100 - radius)
+
+y = canvas_height-100-radius
+inf_limit = canvas_height-100
 
 def background(color):
     lineX, lineY = 30, canvas_height-100
@@ -24,18 +20,23 @@ def background(color):
 
 def object(color):
     x = int(canvas_width / 2)
-    pygame.draw.circle(canvas, color, (x, y), radius, 2)
+    pygame.draw.circle(canvas, color, (x, int(y)), radius, 2)
 
 while True:
     background(blue)
     object(white)
 
-    if y <= 0 + radius:
+    if y+radius <= inf_limit:
+        speed -= gravity
+    elif y+radius+2 > inf_limit:
         speed *= -1
-    if y > canvas_height-100 - radius:
-        speed *= -1
-
-    y -= speed
+        if gravity > -5:
+            gravity *= 1.2
+        else:
+            speed = 0
+            gravity = 0
+            y = inf_limit-radius
+    y += speed
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -47,7 +48,8 @@ while True:
                 quit()
 
             if event.key == pygame.K_SPACE:
-                speed *= -1
+                speed = 20
+                gravity = (speed/25) * -1
 
     fps.tick(60)
     pygame.display.update()
