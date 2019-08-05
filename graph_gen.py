@@ -1,4 +1,4 @@
-# draw a certain pattern as result of the given angle value  
+# draw a certain pattern as result of the given angle value
 
 import pygame, math
 pygame.init()
@@ -17,7 +17,7 @@ black  = (0,0,0)
 
 angle = 0
 radius = 200
-
+speed = -1 / 360
 graph = []
 
 while True:
@@ -30,15 +30,12 @@ while True:
     x += 175
     y += 225
 
-    pygame.draw.ellipse(canvas, white, [x, y, radius/15, radius/15], 1)      # second circle
     pygame.draw.line(canvas, green, [175,225], [x, y],2)
 
-
-# GRAPH
     graph.append(y)
-    pygame.draw.line(canvas, green, [x,y], [350,y],1)                        # connection line
     for i in range(len(graph), 0, -1):
-        pygame.draw.ellipse(canvas, white, [i+350, graph[-i], 2, 2], 1)      # graph circle
+        horizontal_speed = 1.2
+        pygame.draw.ellipse(canvas, white, [(i*horizontal_speed)+350, graph[-i], 2, 2], 1)      # graph circle
         if len(graph) >= 350:
             graph.pop(0)
 
@@ -50,8 +47,11 @@ while True:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 exit()
+            elif event.key == pygame.K_UP:
+                speed += 0.05
+            elif event.key == pygame.K_DOWN:
+                speed -= 0.05
 
-                 # INTERESTING ANGLE VALUES
-    angle -= 0.1 # 1000000000000000 1000000000 10000000 100000 100 0.1 0.01
+    angle -= speed
     fps.tick(60)
     pygame.display.update()
